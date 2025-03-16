@@ -6,79 +6,79 @@
 //
 import UIKit
 
-class CenteredSearchBar: UIControl {
+class CenteredSearchBar: UIView {
+    
+    private lazy var iconSize: CGFloat = 18
+    private lazy var spacing: CGFloat = 8
+    private lazy var centerX = UIScreen.main.bounds.width / 2 - iconSize / 2
+    
+    private var leadingIconConstraint: NSLayoutConstraint!
+    
     private let searchIcon: UIImageView = {
         let imageView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
+        imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.tintColor = .gray
+        imageView.contentMode = .scaleAspectFit
         return imageView
     }()
     
     private let textField: UITextField = {
         let textField = UITextField()
+        textField.translatesAutoresizingMaskIntoConstraints = false
         textField.placeholder = "Search"
         textField.textAlignment = .left
         textField.borderStyle = .none
+        textField.addTarget(self, action: #selector(textFieldDidBeginEditing), for: .editingDidBegin)
+        textField.addTarget(self, action: #selector(textFieldDidEndEditing), for: .editingDidEnd)
         return textField
     }()
     
-    private var isActive = false
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupUI()
+        setupView()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupUI()
+        setupView()
     }
     
-    private func setupUI() {
-        layer.cornerRadius = 10
-        layer.borderWidth = 1
-        layer.borderColor = UIColor.lightGray.cgColor
-        backgroundColor = .white
-        
+    private func setupView() {
         addSubview(searchIcon)
         addSubview(textField)
         
-        textField.addTarget(self, action: #selector(textFieldDidBeginEditing), for: .editingDidBegin)
-        textField.addTarget(self, action: #selector(textFieldDidEndEditing), for: .editingDidEnd)
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
+        leadingIconConstraint = searchIcon.leadingAnchor.constraint(equalTo: leadingAnchor, constant: centerX)
         
-        let iconSize: CGFloat = 18
-        let spacing: CGFloat = 8
-        
-        if isActive {
-            searchIcon.frame = CGRect(x: spacing, y: (bounds.height - iconSize) / 2, width: iconSize, height: iconSize)
-            textField.frame = CGRect(x: searchIcon.frame.maxX + spacing, y: 0, width: bounds.width - searchIcon.frame.maxX - 2 * spacing, height: bounds.height)
-            textField.textAlignment = .left
-        } else {
-            let totalWidth = iconSize + spacing + textField.intrinsicContentSize.width
-            let startX = (bounds.width - totalWidth) / 2
+        NSLayoutConstraint.activate([
+            widthAnchor.constraint(equalToConstant: UIScreen.main.bounds.width),
+            heightAnchor.constraint(equalToConstant: 50),
             
-            searchIcon.frame = CGRect(x: startX, y: (bounds.height - iconSize) / 2, width: iconSize, height: iconSize)
-            textField.frame = CGRect(x: searchIcon.frame.maxX + spacing, y: 0, width: bounds.width - searchIcon.frame.maxX - spacing, height: bounds.height)
-            textField.textAlignment = .center
-        }
+            searchIcon.topAnchor.constraint(equalTo: topAnchor, constant: spacing),
+            searchIcon.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -spacing),
+            leadingIconConstraint, // используем созданный констрейнт
+            searchIcon.widthAnchor.constraint(equalToConstant: iconSize),
+            searchIcon.heightAnchor.constraint(equalTo: searchIcon.widthAnchor),
+            
+            textField.leadingAnchor.constraint(equalTo: searchIcon.trailingAnchor, constant: spacing),
+            textField.centerYAnchor.constraint(equalTo: searchIcon.centerYAnchor),
+            textField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -spacing),
+            textField.heightAnchor.constraint(equalTo: heightAnchor)
+        ])
     }
-    
-    
     
     @objc private func textFieldDidBeginEditing() {
-        isActive = true
-        UIView.animate(withDuration: 0.3) {
-            self.layoutSubviews()
-        }
+        leadingIconConstraint.constant = 8
+        animateLayout()
     }
     
     @objc private func textFieldDidEndEditing() {
-        isActive = false
+        leadingIconConstraint.constant = centerX
+        animateLayout()
+    }
+    
+    private func animateLayout() {
         UIView.animate(withDuration: 0.3) {
-            self.layoutSubviews()
+            self.layoutIfNeeded()
         }
     }
 }

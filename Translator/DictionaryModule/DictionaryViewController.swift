@@ -64,7 +64,6 @@ class DictionaryViewController: UIViewController {
         view.backgroundColor = .white
         view.delegate = self
         view.dataSource = self
-        view.tableHeaderView = searchBar
         view.separatorInset.right = CGFloat(20)
         view.separatorInset.left = view.separatorInset.right
         return view
@@ -144,7 +143,11 @@ extension DictionaryViewController: UITableViewDelegate, UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        50
+        36
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        searchBar
     }
 }
 
